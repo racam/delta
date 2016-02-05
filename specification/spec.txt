@@ -1,0 +1,96 @@
+<program> ::= <main>                                           dir = {'main'}
+
+<main> ::= 'main' <block>                                      dir = {'main'}
+
+<block> ::= '{' <list_instructions> '}'                        dir = {'{'}
+
+<list_instructions> ::= <instruction> <list_instructions>      dir = {IDENT, '(', if, while} 
+					  | EPSILON                                          dir = {'}'}
+
+<instruction> ::= <ident> <instruction2> ';'                   dir = {IDENT}
+                | '(' <lvalue> ')' <assign> ';'                dir = {'('}           
+                | <if>                                         dir = {if}
+                | <while>                                      dir = {while}
+
+<instruction2>(ident) ::= <assign>                             dir = {'='}
+                        | <decl_var_set>                       dir = {IDENT}
+
+<lvalue> ::= <ident>                                           dir = {IDENT}
+           | '(' <lvalue> ')'                                  dir = {'('}
+
+<decl_var_set>(ident) ::= <decl_var> <list_decl_var>           dir = {IDENT}
+
+<list_decl_var> ::= ',' <decl_var> <list_decl_var>             dir = {','}
+                  | EPSILON                                    dir = {';'}
+
+<decl_var> ::= <ident> <initialization>                        dir = {IDENT}
+------
+<initialization> ::= '=' <expression>                          dir = {'='}
+                   | EPSILON                                   dir = {';'}
+
+
+<if> ::= 'if' '(' <expression> ')' <block> <elseif> <else>     dir = {if}
+
+<elseif> ::= 'elseif' '(' <expression> ')' <block> <elseif>    dir = {elseif}
+           | EPSILON                                           dir = {IDENT, '(', if, while, else, '}'}
+
+<else> ::= 'else' <block>                                      dir = {else}
+         | EPSILON                                             dir = {IDENT, '(', if, while, '}'}
+
+
+<while> ::= 'while' '(' <expression> ')' <block>               dir = {while}
+
+<assign>(lvalue) ::= '=' <expression>                          dir = {'='}
+
+<expression> ::= <or_expr>                                     dir = {'-', '!', '(', IDENT, INT, FLOAT, TRUE, FALSE}
+
+<or_expr> ::= <and_expr> <or_expr2>                            dir = {'-', '!', '(', IDENT, INT, FLOAT, TRUE, FALSE}
+<or_expr2> ::= '||' <and_expr> <or_expr2>                      dir = {'||'}
+             | EPSILON                                         dir = {';', ')'}
+
+<and_expr> ::= <eq_expr> <and_expr2>                           dir = {'-', '!', '(', IDENT, INT, FLOAT, TRUE, FALSE}
+<and_expr2> ::= '&&' <eq_expr> <and_expr2>                     dir = {'&&'}
+             | EPSILON                                         dir = {||, ), ;}
+
+<eq_expr> ::= <ineq_expr> <eq_expr2>                           dir = {'-', '!', '(', IDENT, INT, FLOAT, TRUE, FALSE}
+<eq_expr2> ::= '==' <ineq_expr> <eq_expr2>                     dir = {'=='}
+             | '!=' <ineq_expr> <eq_expr2>                     dir = {'!='}
+             | EPSILON                                         dir = {&&, ||, ), ;}
+
+<ineq_expr> ::= <sum_expr> <ineq_expr2>                        dir = {'-', '!', '(', IDENT, INT, FLOAT, TRUE, FALSE}
+<ineq_expr2> ::= '<' <sum_expr> <ineq_expr2>                   dir = {'<'}
+             | '<=' <sum_expr> <ineq_expr2>                    dir = {'<='}
+             | '>' <sum_expr> <ineq_expr2>                     dir = {'>'}
+             | '>=' <sum_expr> <ineq_expr2>                    dir = {'>='}
+             | EPSILON                                         dir = {!=, ==, &&, ||, ), ;}
+
+<sum_expr> ::= <mult_expr> <sum_expr2>                         dir = {'-', '!', '(', IDENT, INT, FLOAT, TRUE, FALSE}
+<sum_expr2> ::= '-' <mult_expr> <sum_expr2>                    dir = {'-'}
+             | '+' <mult_expr> <sum_expr2>                     dir = {'+'}
+             | EPSILON                                         dir = {>=, >, <=, <, !=, ==, &&, ||, ), ;}
+
+<mult_expr> ::= <unary_expr> <mult_expr2>                      dir = {'-', '!', '(', IDENT, INT, FLOAT, TRUE, FALSE}
+<mult_expr2> ::= '*' <unary_expr> <mult_expr2>                 dir = {'*'}
+             | '/' <unary_expr> <mult_expr2>                   dir = {'/'}
+             | '%' <unary_expr> <mult_expr2>                   dir = {'%'}
+             | EPSILON                                         dir = {+, -, >=, >, <=, <, !=, ==, &&, ||, ), ;}
+
+<unary_expr> ::= '-' <unary_expr>                              dir = {'-'}
+               | '!' <unary_expr>                              dir = {'!'}
+               | <primary_expr>                                dir = {'(', IDENT, INT, FLOAT, TRUE, FALSE}
+
+<primary_expr> ::= <literal>                                   dir = {INT, FLOAT, TRUE, FALSE}
+                 | '(' <expression>  ')' *<primary_cast>*      dir = {'('} *expression instanceof ident*
+                 | <ident> <primary_ident>                     dir = {IDENT}
+
+<primary_ident>(ident) ::= <assign>                            dir = {'='} 
+                  | EPSILON                                    dir = {%, /, *, +, -, >=, >, <=, <, !=, ==, &&, ||, ), ;}
+
+<primary_cast>(ident)::= <expression>                           dir = {'(', IDENT, INT, FLOAT, TRUE, FALSE}
+
+<literal> ::= INT                                              dir = {INT}
+            | FLOAT                                            dir = {FLOAT}
+            | TRUE                                             dir = {TRUE}
+            | FALSE                                            dir = {FALSE}
+
+<ident> ::= IDENT                                              dir = {IDENT}
